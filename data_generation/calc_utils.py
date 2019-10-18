@@ -27,9 +27,26 @@ def equal_acc(X, Y, d):
     b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
     return np.square(b - Y).sum() / len(b)
 
-def pred_value_parity_pos(X, Y, d):
-    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
-    return Y[b>0].sum() / len(Y[b>0])
+def pred_value_parity_pos(groups):
+    ppvs = []
+    for (preds,truth) in groups:
+        num_true_pos = 0
+        num_false_pos = 0
+        for i in range(len(preds)):
+            if preds[i]==1:
+                if truth[i]==1:
+                    num_true_pos+=1
+                else:
+                    num_false_pos+=1
+        ppv = (num_true_pos)/(num_true_pos+num_false_pos)
+        ppvs.append(ppv)
+    # return max difference
+    return (max(ppv)-min(ppv))
+
+
+
+
+
 
 def pred_value_parity_neg(X, Y, d):
     b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
