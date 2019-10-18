@@ -12,23 +12,25 @@ representing column to use when grouping data, w as np array
 representing weight vector (and we can use this to hopefully extend to
 all datasets we're looking at).
 '''
-def calculate_equal_odds(X,y,g,w):
-    pass
+def stat_parity(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return b.sum() / len(b)
+def equal_opp(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return b[Y>0].sum() / len(b[Y>0])
 
-def calculate_pvp_pos(X,y,g,w):
-    pass
+def equal_unopp(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return b[Y<1].sum() / len(b[Y<1])
 
-def calculate_pvp_neg(X,y,g,w):
-    pass
+def equal_acc(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return np.square(b - Y).sum() / len(b)
 
-def calculate_stat_parity(X,y,g,w):
-    pass
+def pred_value_parity_pos(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return Y[b>0].sum() / len(Y[b>0])
 
-def calculate_equal_opp(X,y,g,w):
-    pass
-
-def calculate_equal_unopp(X,y,g,w):
-    pass
-
-def calculate_equal_acc(X,y,g,w):
-    pass
+def pred_value_parity_neg(X, Y, d):
+    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
+    return Y[b<1].sum() / len(Y[b<1])
