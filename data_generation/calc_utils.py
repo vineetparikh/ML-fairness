@@ -29,6 +29,7 @@ def equal_acc(X, Y, d):
 
 def pred_value_parity_pos(groups):
     ppvs = []
+
     for (preds,truth) in groups:
         num_true_pos = 0
         num_false_pos = 0
@@ -40,14 +41,23 @@ def pred_value_parity_pos(groups):
                     num_false_pos+=1
         ppv = (num_true_pos)/(num_true_pos+num_false_pos)
         ppvs.append(ppv)
-    # return max difference
-    return (max(ppv)-min(ppv))
+    # return max difference in predictive value parity
+    # i.e. showing max "unfairness"
+    return (max(ppvs)-min(ppvs))
 
-
-
-
-
-
-def pred_value_parity_neg(X, Y, d):
-    b = np.apply_along_axis(lambda x : d[str(x)][2], 1, X)
-    return Y[b<1].sum() / len(Y[b<1])
+def pred_value_parity_neg(groups):
+    ppvs = []
+    for (preds,truth) in groups:
+        num_true_neg = 0
+        num_false_neg = 0
+        for i in range(len(preds)):
+            if preds[i]==0:
+                if truth[i]==0:
+                    num_true_neg+=1
+                else:
+                    num_false_neg+=1
+        ppv = (num_true_neg)/(num_true_neg+num_false_neg)
+        ppvs.append(ppv)
+    # return max difference in predictive value parity
+    # i.e. showing max "unfairness"
+    return (max(ppvs)-min(ppvs))
