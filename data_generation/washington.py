@@ -17,7 +17,7 @@ def load_data(file_path, feature_names):
     
     df = df.loc[:, feature_names]
     df.iloc[:,-1] = df.iloc[:,-1].map({"Loan originated" : 1, "Application denied by financial institution": 0})
-    df.loc[:,"applicant_sex_name"] = df.loc[:,"applicant_sex_name"].map({"Male": 1, "Female": 0})
+    df.loc[:,"applicant_sex_name"] = df.loc[:,"applicant_sex_name"].map({"Male": 1, "Female": -1})
     # PROCESS 1 HOT FEATURES
     #df = pd.get_dummies(df, prefix=[])
     df = pd.get_dummies(df, prefix=["owner_occupancy_name", "loan_purpose_name", "county_name", "agency_name", "lien_status_name"])
@@ -40,10 +40,25 @@ def get_X_Y(df):
     return X,y,df
 
 def P_Yhat_given_Y(preds, y):
+    # 0 any negative entries to support two different formats
+    preds = 1.0*(preds > 0)
     return np.sum(np.multiply(preds, y)) / np.sum(y)
 
 def P_Y_given_Yhat(preds, y):
+    # 0 any negative entries to support two different formats
+    preds = 1.0*(preds > 0)
     return np.sum(np.multiply(preds, y)) / np.sum(preds)
+
+def evaluate_model(X, w):
+    probs = 1/(1+np.exp(-np.matmul(X,w)))
+    preds = np.sign(probs - 0.5)
+    return preds
+
+def evaluate_accuracy(y, preds):
+    y = 2*y - 1
+    correct = sum(y*preds > 0)
+    accuracy = float(correct)/len(preds)
+    return accuracy
 
 df = load_data(file_path, feature_names)
 X,y,df = get_X_Y(df)
@@ -61,10 +76,10 @@ print("Probability of Y_given_Y_hat overall is: " + str(P_Y_given_Yhat(preds, te
 
 # Split test set by male and female
 X_test_male = test_X[test_X["applicant_sex_name"] == 1]
-X_test_female = test_X[test_X["applicant_sex_name"] == 0]
+X_test_female = test_X[test_X["applicant_sex_name"] == -1]
 
-y_test_male = test_y[test_X["applicant_sex_name"] == 1]
-y_test_female = test_y[test_X["applicant_sex_name"] == 0]
+y_test_male = test_y[test_X["applicant_sex_name"] == 1].to_numpy()
+y_test_female = test_y[test_X["applicant_sex_name"] == -1].to_numpy()
 
 # predictions for males and females respectively
 preds_male = classifier.predict(X_test_male)
@@ -84,6 +99,29 @@ prob_accepted = df.sum(axis=0, skipna=True).loc["action_taken_name"]/total_entri
 print("Probability of lone acceptance overall is: " + str(prob_accepted))
 prob_denied = 1 - prob_accepted
 print("Probability of lone denial overall is: " + str(prob_denied))
+
+# test the classification on the weight vector
+w = classifier.coef_[0]
+test_X = test_X.to_numpy()
+test_y = test_y.to_numpy()
+
+# convert negative lable to -1
+for i in range(20):
+    print("\n\n")
+    w[6] -= 0.05
+    print(w[6])
+    preds = evaluate_model(test_X, w)
+    preds_male = evaluate_model(X_test_male, w)
+    preds_female = evaluate_model(X_test_female, w)
+    accuracy = evaluate_accuracy(test_y, preds)
+    print("accuracy for the following round was: " + str(accuracy))
+    print("P_Yhat_given_Y for male is : " + str(P_Yhat_given_Y(preds_male, y_test_male)))
+    print("P_Y_given_Yhat for male is : " + str(P_Y_given_Yhat(preds_male, y_test_male)))
+    print("P_Yhat_given_Y for female is : " + str(P_Yhat_given_Y(preds_female, y_test_female)))
+    print("P_Y_given_Yhat for female is : " + str(P_Y_given_Yhat(preds_female, y_test_female)))
+    
+
+
 
 
 
