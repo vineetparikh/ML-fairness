@@ -93,12 +93,19 @@ print("Probability of Y_given_Y_hat male is: " + str(P_Y_given_Yhat(preds_male, 
 print("Probability of Y_hat_given_Y female is: " + str(P_Yhat_given_Y(preds_female, y_test_female)))
 print("Probability of Y_given_Y_hat female is: " + str(P_Y_given_Yhat(preds_female, y_test_female)))
 
+
+opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+predictive_value = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
+
+print("\n\n")
+print("difference in opportunity between male and female is: " + str(opportunity))
+print("difference in predictive value between male and female is: " + str(predictive_value))
 # probablity that the lone is accepted/denied
-total_entries = X.shape[0]
-prob_accepted = df.sum(axis=0, skipna=True).loc["action_taken_name"]/total_entries
-print("Probability of lone acceptance overall is: " + str(prob_accepted))
-prob_denied = 1 - prob_accepted
-print("Probability of lone denial overall is: " + str(prob_denied))
+# total_entries = X.shape[0]
+# prob_accepted = df.sum(axis=0, skipna=True).loc["action_taken_name"]/total_entries
+# print("Probability of lone acceptance overall is: " + str(prob_accepted))
+# prob_denied = 1 - prob_accepted
+# print("Probability of lone denial overall is: " + str(prob_denied))
 
 # test the classification on the weight vector
 w = classifier.coef_[0]
@@ -106,20 +113,48 @@ test_X = test_X.to_numpy()
 test_y = test_y.to_numpy()
 
 # convert negative lable to -1
-for i in range(20):
-    print("\n\n")
-    w[6] -= 0.05
+opportunities = [opportunity]
+predictive_values = [predictive_value]
+ws = [w[6]]
+accuracies = [accuracy]
+steps = [0]
+for i in range(10):
+    steps.append(i + 1)
+    print("\n\n\n")
+    w[6] -= 0.01
+    ws.append(w[6])
     print(w[6])
     preds = evaluate_model(test_X, w)
     preds_male = evaluate_model(X_test_male, w)
     preds_female = evaluate_model(X_test_female, w)
     accuracy = evaluate_accuracy(test_y, preds)
+    accuracies.append(accuracy)
     print("accuracy for the following round was: " + str(accuracy))
     print("P_Yhat_given_Y for male is : " + str(P_Yhat_given_Y(preds_male, y_test_male)))
     print("P_Y_given_Yhat for male is : " + str(P_Y_given_Yhat(preds_male, y_test_male)))
     print("P_Yhat_given_Y for female is : " + str(P_Yhat_given_Y(preds_female, y_test_female)))
     print("P_Y_given_Yhat for female is : " + str(P_Y_given_Yhat(preds_female, y_test_female)))
-    
+    print("\n")
+    opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+    opportunities.append(opportunity)
+    predictive_value = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
+    predictive_values.append(predictive_value)
+    print("difference in opportunity between male and female is: " + str(opportunity))
+    print("difference in predictive value between male and female is: " + str(predictive_value))
+
+fig, ax1 = plt.subplots(nrows=1, ncols=1)
+ax1.plot(steps, opportunities, label='difference in opportunites')
+ax1.plot(steps, predictive_values, label='difference in predictive values')
+
+fig, ax2 = plt.subplots(nrows=1, ncols=1)
+ax2.plot(steps, accuracies, label='accuracies')
+
+#plt.plot(ws, opportunities, label='difference in opportunites')
+#plt.plot(ws, predictive_values, label='difference in predictive values')
+#plt.plot(ws, accuracies, label='accuracy')
+ax1.legend()
+ax2.legend()
+plt.show()
 
 
 
