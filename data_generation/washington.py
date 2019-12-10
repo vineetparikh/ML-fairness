@@ -3,8 +3,8 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 # determines where to use genders or to augment the weight for income
-USE_GENDERS = True
-
+USE_GENDERS = False
+CO_APPLICANT_SEX_WEIGHT = True
 file_path = "datasets/Washington_State_HDMA-2016.csv"
 
 # the features we want to use to make the predictor, with the last one being the label
@@ -25,6 +25,7 @@ def load_data(file_path, feature_names):
     #df = pd.get_dummies(df, prefix=[])
     df = pd.get_dummies(df, prefix=["owner_occupancy_name", "loan_purpose_name", "county_name", "agency_name", "lien_status_name", "co_applicant_sex_name"])
     print([col for col in df.columns])
+    print(len([col for col in df.columns]))
     # END PROCESS 1 HOT FEATURES
     # drop non-present rows
     df = df.dropna()
@@ -165,6 +166,46 @@ if USE_GENDERS:
     ax1.legend()
     ax2.legend()
     plt.show()
+elif CO_APPLICANT_SEX_WEIGHT:
+    ws = [w[-3]]
+    print("true rate for males cohabiting with males: " + str(X_test_male.sum(axis=0, skipna=True).loc["co_applicant_sex_name_Male"] / X_test_male.shape[0]))
+    print("true rate for females cohabiting with males: " + str(X_test_female.sum(axis=0, skipna=True).loc["co_applicant_sex_name_Male"]  / X_test_female.shape[0]))
+    for i in range(10):
+        steps.append(i + 1)
+        print("\n\n\n")
+        print(w[-3])
+        w[-3] += 0.001
+        ws.append(w[-3])
+        print(w[-3])
+        preds = evaluate_model(test_X, w)
+        preds_male = evaluate_model(X_test_male, w)
+        preds_female = evaluate_model(X_test_female, w)
+        accuracy = evaluate_accuracy(test_y, preds)
+        accuracies.append(accuracy)
+        print("accuracy for the following round was: " + str(accuracy))
+        print("P_Yhat_given_Y for male is : " + str(P_Yhat_given_Y(preds_male, y_test_male)))
+        print("P_Y_given_Yhat for male is : " + str(P_Y_given_Yhat(preds_male, y_test_male)))
+        print("P_Yhat_given_Y for female is : " + str(P_Yhat_given_Y(preds_female, y_test_female)))
+        print("P_Y_given_Yhat for female is : " + str(P_Y_given_Yhat(preds_female, y_test_female)))
+        print("\n")
+        opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+        opportunities.append(opportunity)
+        pos_PVP = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
+        pos_PVPs.append(pos_PVP)
+        print("difference in opportunity between male and female is: " + str(opportunity))
+        print("difference in predictive value between male and female is: " + str(pos_PVP))
+
+    fig, ax1 = plt.subplots(nrows=1, ncols=1)
+    ax1.plot(steps, opportunities, label='difference in opportunities')
+    ax1.plot(steps, pos_PVPs, label='difference in predictive values')
+
+    fig, ax2 = plt.subplots(nrows=1, ncols=1)
+    ax2.plot(steps, accuracies, label='accuracies')
+
+    ax1.legend()
+    ax2.legend()
+    plt.show()
+
 else:
     ws = [w[3]]
     for i in range(10):
