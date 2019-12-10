@@ -45,7 +45,11 @@ groups = df_tex[group_check].unique()
 clf = train_classifier(df_trx,df_try)
 yh_g_y_overall = []
 yh_g_y_disparity = []
-# print(clf.coef_[0]) # first coefficient is consistently one of the higher ones.
+print(clf.coef_[0]) # first coefficient is consistently one of the higher ones.
+index_max = np.argmax(clf.coef_[0])
+index_min = np.argmin(clf.coef_[0])
+print(index_max)
+print(index_min)
 plot_x = []
 for i in range(20):
     preds = test_classifier(clf,df_tex)
@@ -57,11 +61,13 @@ for i in range(20):
         dfg_y = df_tey[df_tex[group_check]==g].to_numpy().ravel()
         group_vals.append(P_Yhat_given_Y(preds_g,dfg_y))
     yh_g_y_disparity.append(max(group_vals)-min(group_vals))
-    clf.coef_[0][0] -= 0.02 #small change for now
+    clf.coef_[0][index_max] -= 0.02 #small change for now
+    # clf.coef_[0][index_min] += 0.02
     plot_x.append(i*.02)
-print(len(yh_g_y_overall))
-print(len(yh_g_y_disparity))
-plt.plot(plot_x,yh_g_y_overall)
-plt.show()
+# plt.plot(plot_x,yh_g_y_overall)
+# plt.show()
 plt.plot(plot_x,yh_g_y_disparity)
+plt.title("Changing biggest weight changes disparity in odds")
+plt.xlabel("Perturbation of biggest weight (negative)")
+plt.ylabel("Max disparity in odds between different groups")
 plt.show()
