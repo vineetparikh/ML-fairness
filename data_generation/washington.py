@@ -104,12 +104,12 @@ print("Probability of Y_hat_given_Y female is: " + str(P_Yhat_given_Y(preds_fema
 print("Probability of Y_given_Y_hat female is: " + str(P_Y_given_Yhat(preds_female, y_test_female)))
 
 
-opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
-predictive_value = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
+odd = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+opportunity = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
 
 print("\n\n")
-print("difference in opportunity between male and female is: " + str(opportunity))
-print("difference in predictive value between male and female is: " + str(predictive_value))
+print("difference in odds between male and female is: " + str(odd))
+print("difference in opportunity value between male and female is: " + str(opportunity))
 # probablity that the lone is accepted/denied
 # total_entries = X.shape[0]
 # prob_accepted = df.sum(axis=0, skipna=True).loc["action_taken_name"]/total_entries
@@ -123,8 +123,8 @@ test_X = test_X.to_numpy()
 test_y = test_y.to_numpy()
 
 # convert negative lable to -1
+odds = [odd]
 opportunities = [opportunity]
-predictive_values = [predictive_value]
 accuracies = [accuracy]
 steps = [0]
 if USE_GENDERS:
@@ -146,16 +146,16 @@ if USE_GENDERS:
         print("P_Yhat_given_Y for female is : " + str(P_Yhat_given_Y(preds_female, y_test_female)))
         print("P_Y_given_Yhat for female is : " + str(P_Y_given_Yhat(preds_female, y_test_female)))
         print("\n")
-        opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+        odd = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+        odds.append(odd)
+        opportunity = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
         opportunities.append(opportunity)
-        predictive_value = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
-        predictive_values.append(predictive_value)
-        print("difference in opportunity between male and female is: " + str(opportunity))
-        print("difference in predictive value between male and female is: " + str(predictive_value))
+        print("difference in odds between male and female is: " + str(odd))
+        print("difference in opportunity value between male and female is: " + str(opportunity))
 
     fig, ax1 = plt.subplots(nrows=1, ncols=1)
-    ax1.plot(steps, opportunities, label='difference in opportunites')
-    ax1.plot(steps, predictive_values, label='difference in predictive values')
+    ax1.plot(steps, odds, label='difference in odds')
+    ax1.plot(steps, opportunities, label='difference in opportunities')
 
     fig, ax2 = plt.subplots(nrows=1, ncols=1)
     ax2.plot(steps, accuracies, label='accuracies')
@@ -182,16 +182,16 @@ else:
         print("P_Yhat_given_Y for female is : " + str(P_Yhat_given_Y(preds_female, y_test_female)))
         print("P_Y_given_Yhat for female is : " + str(P_Y_given_Yhat(preds_female, y_test_female)))
         print("\n")
-        opportunity = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+        odd = P_Yhat_given_Y(preds_male, y_test_male) - P_Yhat_given_Y(preds_female, y_test_female)
+        odds.append(odd)
+        opportunity = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
         opportunities.append(opportunity)
-        predictive_value = P_Y_given_Yhat(preds_male, y_test_male) - P_Y_given_Yhat(preds_female, y_test_female)
-        predictive_values.append(predictive_value)
-        print("difference in opportunity between male and female is: " + str(opportunity))
-        print("difference in predictive value between male and female is: " + str(predictive_value))
+        print("difference in odds between male and female is: " + str(odd))
+        print("difference in opportunity value between male and female is: " + str(opportunity))
 
     fig, ax1 = plt.subplots(nrows=1, ncols=1)
-    ax1.plot(steps, opportunities, label='difference in opportunites')
-    ax1.plot(steps, predictive_values, label='difference in predictive values')
+    ax1.plot(steps, odds, label='difference in odds')
+    ax1.plot(steps, opportunities, label='difference in opportunities values')
 
     fig, ax2 = plt.subplots(nrows=1, ncols=1)
     ax2.plot(steps, accuracies, label='accuracies')
