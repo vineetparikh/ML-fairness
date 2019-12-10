@@ -122,6 +122,8 @@ w = classifier.coef_[0]
 test_X = test_X.to_numpy()
 test_y = test_y.to_numpy()
 
+print("average male income in test set: " + str(X_test_male.sum(axis=0, skipna=True).loc["applicant_income_000s"] / X_test_male.shape[0]))
+print("average female income in test set: " + str(X_test_female.sum(axis=0, skipna=True).loc["applicant_income_000s"]  / X_test_female.shape[0]))
 # convert negative lable to -1
 odds = [odd]
 opportunities = [opportunity]
